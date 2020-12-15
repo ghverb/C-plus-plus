@@ -1,0 +1,240 @@
+#include <iostream>
+#include <sstream>//istringstream
+#include <string>
+#include <fstream>// for file reading purpose
+using namespace std;
+
+const int MAX_STUDENTS = 25;
+const int AMOUNT_OF_HW = 10;
+const int AMOUNT_OF_TESTS = 3;
+
+int readFile(string[][2],int [][AMOUNT_OF_HW],int [][AMOUNT_OF_TESTS]);
+void outputStudentInfo(string,string,char,int[],int[]);
+string format(string);
+char computeGrade(int[],int[]);
+int findStudent(string[][2],int,string);
+    
+
+int main ()
+{
+  string names[MAX_STUDENTS][2];
+  char grade [MAX_STUDENTS];
+  int hw [MAX_STUDENTS][AMOUNT_OF_HW];
+  int exams [MAX_STUDENTS][AMOUNT_OF_TESTS];
+  string userInput="";
+  int numberOfStudents;
+      
+  //reading the file and populating the array
+  do
+    {
+      numberOfStudents=readFile(names ,hw ,exams);
+    } while(numberOfStudents<=0);
+  
+  
+  //computing grades for each student
+  for(int count=0;count<MAX_STUDENTS;count++)
+    {
+      grade[count] = computeGrade (hw[count],exams[count]);
+    }
+  
+  do
+    {
+      //getting user input for name of student
+      cout<<"Enter a student's last name or enter quit:";
+      cin>>userInput;
+      
+      if(format(userInput)=="Quit")
+	{
+	  return 0;
+	}
+      
+      //outputting student information based on searching student name
+      int index = findStudent(names,numberOfStudents,userInput);
+      if(index!=-1)
+	{
+	  outputStudentInfo(format(names[index][0]),format(names[index][1]),grade[index],hw[index],exams[index]);
+	}
+      else
+	{
+	  cout<<"Sorry! Student not found."<<endl;
+	}
+      
+    } while(format(userInput)!="Quit");
+  return 0;
+}
+
+int readFile(string names [][2],int hw [][AMOUNT_OF_HW],int exams [][AMOUNT_OF_TESTS])
+{
+  int recordCount=-1;
+  string studentFileName;
+    
+  cout<<"\nEnter student file: ";
+  cin>>studentFileName;
+    
+  //Open file and get number of files
+  ifstream inFile;
+  inFile.open(studentFileName.c_str());
+  
+  //Check if file is opened successfully
+  if(!inFile)
+    {
+      //if file opening fails return -1
+      cout<<"Unable to open input file";
+      return recordCount;
+    }
+  
+  string line;
+  recordCount=0;
+  int lineCount=0;
+  while (getline(inFile, line))
+    {
+      
+      if(lineCount%4==0)
+	{
+	  //using istringstream to break the line into tokens
+	  std::istringstream stream (line);
+	  //First line contains name of student
+	  stream>>names[recordCount][0]>> names[recordCount][1];  
+	}
+      
+      if(lineCount%4==1)
+	{
+	  std::istringstream stream (line);
+	  //second line contains assignment grades
+	  stream>>hw[recordCount][0]>> hw[recordCount][1]>>hw[recordCount][2]>>hw[recordCount][3]>>hw[recordCount][4]>>hw[recordCount][5]>>hw[recordCount][6]>>hw[recordCount][7]>>hw[recordCount][8]>>hw[recordCount][9];
+	  
+	}
+      
+      if(lineCount%4==2)
+	{
+	  std::istringstream stream (line);
+	  //First line contains name of student
+	  stream>>exams[recordCount][0]>> exams[recordCount][1]>> exams[recordCount][2];  
+	}
+      
+      
+      //There is one empty line for which we do nothing
+      
+      if(recordCount>=MAX_STUDENTS-1)
+	{
+	  cout<<"Limit for reading reached"<<endl;
+	  break;
+	}
+      
+      lineCount++;
+      
+      if(lineCount%4==0)
+	{
+	  recordCount++;
+	} 
+    }
+    
+  //since record index starts at zero. Total number of records is recordcount + 1
+  return (recordCount+1);
+  
+}
+
+void outputStudentInfo(string firstName,string lastName,char Grade,int homeworkScores[],int examScores[])
+{
+  cout<< format(lastName)<<", "<<format(firstName)<<endl;
+  cout<<"Assignment Grades"<<endl;
+  for(int i=0;i<AMOUNT_OF_HW;i++)
+    {
+      cout<<homeworkScores[i]<<" ";
+    }
+  cout<<"\nExam Grades"<<endl;
+  for(int j=0;j<AMOUNT_OF_TESTS;j++)
+    {
+      cout<<examScores[j]<<" ";
+    }
+  cout<<"\nLetter Grade"<<endl;
+  cout<<Grade<<endl;
+  
+  
+}
+
+char computeGrade(int homeworkScores[],int examScores[])
+{
+  
+  int homeworkSum=0, homeworkAverage;
+  
+  int examSum=0, examAverage, totalAverage;
+  
+  //calculating average for homework scores
+  for(int i=0;i<AMOUNT_OF_HW;i++)
+    {
+      homeworkSum = homeworkSum + homeworkScores[i];
+    }
+  
+  homeworkAverage = homeworkSum / AMOUNT_OF_HW;
+  
+  //calculating average for exam Scores
+  for(int j=0;j<AMOUNT_OF_TESTS;j++)
+    {
+      examSum = examSum + examScores[j];
+    }
+  
+  examAverage = examSum / AMOUNT_OF_TESTS;
+  
+  totalAverage = (homeworkAverage + examAverage ) /2;
+  
+  //allocating grades based on average of homework and exam
+  
+  if(totalAverage>=90)
+    {
+      return 'A';
+    }
+  else if (totalAverage >=80 )
+    {
+      return 'B';
+    }
+  else if ( totalAverage >= 70)
+    {
+      return 'C';
+    }
+  else if (totalAverage >= 60)
+    {
+      return 'D';
+    }
+  else
+    {
+      return 'F';
+    }
+}
+
+string format(string inputString)
+{
+  //if first letter is lower case. Make it upper case.
+  if(inputString.at(0)>=97 && inputString.at(0)<=122)
+    {
+      inputString.at(0) = inputString.at(0) - 32;
+    }
+  
+  //make the rest of the letters lower case
+  for(int i=1; i<inputString.length();i++)
+    {
+      if(inputString.at(i)>=65 && inputString.at(i) <= 90)
+	{
+	  inputString.at(i) = inputString.at(i) + 32;
+	}
+    }
+  
+  return inputString;
+  
+}
+
+int findStudent(string names[][2],int limit,string userInput)
+{
+  for(int i=0;i<limit;i++)
+    {
+      //format the input and last name stored for comparison
+      if(format(userInput)==format(names[i][1]))
+	{
+	  //return the record index
+	  return i;
+	}
+    }
+  
+  return -1;
+  
+}
